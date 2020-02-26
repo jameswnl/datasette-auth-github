@@ -68,6 +68,7 @@ class GitHubAuth:
         allow_orgs=None,
         allow_teams=None,
         cacheable_prefixes=None,
+        ignore_paths=None,
     ):
         self.app = app
         self.client_id = client_id
@@ -80,6 +81,7 @@ class GitHubAuth:
         self.allow_teams = allow_teams
         self.cacheable_prefixes = cacheable_prefixes or []
         self.team_to_team_id = {}
+        self.ignore_paths = ignore_paths or []
 
         cookie_version = cookie_version or "default"
         # Derive cookie_secret (used for signing cookies)
@@ -113,10 +115,19 @@ class GitHubAuth:
             return await self.auth_callback(scope, receive, send)
 
         auth = self.auth_from_scope(scope)
-        if auth or (not self.require_auth):
+        if auth or not self.check_require_auth(scope):
             await self.app(dict(scope, auth=auth), receive, send)
         else:
             await self.handle_require_auth(scope, receive, send)
+
+    def check_require_auth(self, scope):
+        print(scope)
+        for method, path in self.ignore_paths:
+            if scope['method'] == method and fnmatch.fnmatch(scope['path'], path):
+                print("path matched exlcusion and so no need for auth")
+                return False
+        return self.require_auth
+
 
     async def logout(self, scope, receive, send):
         headers = [["location", "/"]]
