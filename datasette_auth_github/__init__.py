@@ -14,6 +14,7 @@ def asgi_wrapper(datasette):
     allow_teams = config.get("allow_teams")
     cookie_ttl = config.get("cookie_ttl") or 60 * 60
     cookie_version = config.get("cookie_version")
+    ignore_paths = config.get("ignore_paths")
 
     # require_auth defaults to True unless set otherwise
     require_auth = True
@@ -35,6 +36,7 @@ def asgi_wrapper(datasette):
             allow_users=allow_users,
             allow_orgs=allow_orgs,
             allow_teams=allow_teams,
+            ignore_paths=ignore_paths,
             cacheable_prefixes=["/-/static/", "/-/static-plugins/"],
         )
 
